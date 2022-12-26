@@ -9,7 +9,7 @@ class Store(Base):
 class Item(Base):
     __tablename__='items'
     id=Column(Integer, primary_key=True, autoincrement=True, unique=True, comment='ID товара')
-    name=Column(String(255), unique=False, comment='Название товара')
+    name=Column(String, unique=False, comment='Название товара')
     price=Column(Float, comment='Цена')
 
 class Sale(Base):
