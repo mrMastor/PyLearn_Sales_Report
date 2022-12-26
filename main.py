@@ -9,7 +9,6 @@ from exceptions import UniqueViolationError, ForeignKeyViolationError
 import json
 import aiofiles
 import asyncio
-from settings import connect_timeout
 
 app = FastAPI()
 
@@ -42,6 +41,7 @@ async def startup():
     await init_model()
     await load_files('jitems')
     await load_files('jstores')  
+    await load_files('jsales')
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -89,12 +89,14 @@ async def get_top_store(session: AsyncSession = Depends(get_session)):
 async def get_top_items(session: AsyncSession = Depends(get_session)):
     try:
         top_items = await service.get_top_items(session)
-        return [TopItems(id=c.id, name=c.name, count=c.count) for c in top_items]
+        x= [TopItems(id=id, name=name, count=count) for id, name, count in top_items]
+        return x
     except IntegrityError as ex:
         await session.rollback()
         raise ForeignKeyViolationError("Не корректный запрос")
     finally:
         await session_destroy()
+
 
 @app.post("/sales/")
 async def add_sale(sale: Sale, session: AsyncSession = Depends(get_session)):
@@ -142,5 +144,12 @@ async def load_files(fname: str):
                 for i in jfile:
                     await add_store(store=AddStore.parse_obj(jfile[i]), session=conn)
                 return print("Магазины успешно подгружены в БД")
+            elif fname == 'jsales':
+                for i in jfile:
+                    await add_sale(sale=Sale.parse_obj(jfile[i]), session=conn)
+                return print("Продажи успешно подгружены в БД")
         except:
             raise ("Пробблемы в блоке работы с файлом")
+
+if __name__=="__main__":
+    asyncio.run(get_top_items())
