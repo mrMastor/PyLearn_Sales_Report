@@ -1,4 +1,3 @@
-
 PG_USER = "student"
 PG_PASSWORD = "Root1035"
 PG_DBNAME = "studentdb"

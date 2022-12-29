@@ -1,5 +1,4 @@
 from fastapi import HTTPException
-from asyncio import exceptions
 
 class UniqueViolationError(HTTPException):
     def __init__(self, message: str):

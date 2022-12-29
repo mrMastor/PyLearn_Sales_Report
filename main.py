@@ -3,12 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 import service
-from datetime import datetime
 from base import init_model, get_session, session_destroy, async_session
 from exceptions import UniqueViolationError, ForeignKeyViolationError
 import json
 import aiofiles
-import asyncio
 
 app = FastAPI()
 
@@ -49,7 +47,7 @@ async def shutdown():
 
 @app.get("/")
 async def index():
-    print (datetime.now().strftime("%Y-%m-%d %H:%M"))
+    # print (datetime.now().strftime("%Y-%m-%d %H:%M"))
     return "Hello!"
 
 @app.get("/items/", response_model=list[Item])
@@ -78,7 +76,7 @@ async def get_store(session: AsyncSession = Depends(get_session)):
 async def get_top_store(session: AsyncSession = Depends(get_session)):
     try:
         top_stores = await service.get_top_store(session)
-        return [TopStores(id=c.id, address=c.address, summ=c.summ) for c in top_stores]
+        return [TopStores(id=i, address=a, summ=s) for i, a, s in top_stores]
     except IntegrityError as ex:
         await session.rollback()
         raise ForeignKeyViolationError("Не корректный запрос")
@@ -89,8 +87,7 @@ async def get_top_store(session: AsyncSession = Depends(get_session)):
 async def get_top_items(session: AsyncSession = Depends(get_session)):
     try:
         top_items = await service.get_top_items(session)
-        x= [TopItems(id=id, name=name, count=count) for id, name, count in top_items]
-        return x
+        return [TopItems(id=id, name=name, count=count) for id, name, count in top_items]
     except IntegrityError as ex:
         await session.rollback()
         raise ForeignKeyViolationError("Не корректный запрос")
@@ -150,6 +147,3 @@ async def load_files(fname: str):
                 return print("Продажи успешно подгружены в БД")
         except:
             raise ("Пробблемы в блоке работы с файлом")
-
-if __name__=="__main__":
-    asyncio.run(get_top_items())
